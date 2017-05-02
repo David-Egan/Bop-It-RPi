@@ -1,6 +1,9 @@
 #include "gpio.h"
 #include "system_timer.h"
 #include "uart.h"
+#include "bcm2835.h"
+
+#define PIN RPI_GPIO_P1_15
 
 void f_blink_once()
 {
@@ -59,9 +62,39 @@ void check_switches(int num, uint32_t timer){ //not sure if this will be void or
 	//can bounce out or do everything in this function
 
 }
+
+void test_switch(){
+	if (!bcm2835_init())
+        return 1;
+
+    // Set PIN to be an input
+    bcm2835_gpio_fsel(PIN, BCM2835_GPIO_FSEL_INPT);
+    //  add a pullup
+    bcm2835_gpio_set_pud(PIN, BCM2835_GPIO_PUD_UP);
+    // and enble low
+    bcm2835_gpio_len(PIN);
+
+    while (1)
+    {
+        if (bcm2835_gpio_eds(PIN))
+        {
+            // Now clear the eds flag by setting it to 1
+            bcm2835_gpio_set_eds(PIN);
+            put_string("Button Pressed!\r\n");
+        }
+        delay(500);
+    }
+    bcm2835_close();
+    return 0;
+	
+}
+
+
 int main()
 {
-    // Implement Lab 4 as described in the lab manual
+    test_switch();
+	
+	// Implement Lab 4 as described in the lab manual
 	gpio[GPFSEL2] = 0x208000;	//want bits 21-23 and 15-17 to both be 001
 	gpio[GPFSEL1] = 0x0000000; //set all the bits on gpio select 1 to be inputs
 	//these are pins 10 through 19
