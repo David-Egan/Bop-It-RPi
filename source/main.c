@@ -3,8 +3,9 @@
 #include "uart.h"
 #include "bcm2835.h"
 
-#define PIN RPI_GPIO_P1_15
-
+#define PIN RPI_GPIO_P1_11
+//this is actually GPIO pin 17
+//PI refers to the 26 or 40 pin expansion header. P1-11 refers to pin 11 of that header which is GPIO 17.
 void f_blink_once()
 {
     // Turn on GPIO 27
@@ -54,13 +55,31 @@ void blink_code(uint32_t err)
     timer_delay_ms(4500);
 }
 
-void check_switches(int num, uint32_t timer){ //not sure if this will be void or not
+void play_game(){ //not sure if this will be void or not
 	//while current_time != timer || (button not pressed) (timer is the amount of time offset we allow them)
 	//poll the switches
 	//when a user presses a switch break out of while loop
 	//check if the switch was right 
 	//can bounce out or do everything in this function
-
+	
+	
+	//set up the 3 pins to be inputs, add pullups, and enable lows
+	int switch_pressed = 0;
+	//get timer and add offset
+	uint32_t currentCount = sys_timer[SYS_TIMER_CLO];
+	uint32_t wait = 3000000;
+	uint32_t targetTime = currentCount + wait; //This gives them three seconds
+	uint8_t pin_number = currentCount & 0x00000ff;	//not sure of this is right
+	//randomly choose switch
+	char button_string = currentCount | 0x30;	
+	//make the character printable
+	char temp[10] = {"Switch: ", button_string};
+	put_string(temp);
+	//put string of switch chosen
+	while (switch_pressed != 1){
+		//poll the switches here
+		
+	}
 }
 
 void test_switch(){
@@ -94,9 +113,8 @@ int main()
 {
     test_switch();
 	
-	// Implement Lab 4 as described in the lab manual
-	gpio[GPFSEL2] = 0x208000;	//want bits 21-23 and 15-17 to both be 001
-	gpio[GPFSEL1] = 0x0000000; //set all the bits on gpio select 1 to be inputs
+//	gpio[GPFSEL2] = 0x208000;	//want bits 21-23 and 15-17 to both be 001
+//	gpio[GPFSEL1] = 0x0000000; //set all the bits on gpio select 1 to be inputs
 	//these are pins 10 through 19
 
 	const int buffer_size = 80;
@@ -105,21 +123,18 @@ int main()
 	char buffer [buffer_size];
 	get_string(buffer, buffer_size);
 	while (1){
-		//randomly choose the switch here
+
 		put_string("Welcome, please input a 1\r\n");
 		get_string(buffer, buffer_size);
 		char ch = buffer[0];
 		if (ch == '1'){
 			//begin the game logic
-			check_switches(num, timer)  //pass game_over variable as well??
-		}
-		else if (ch == '2'){
-		//do the other function
-
+			play_game();  
 		}
 		else{
 			put_string("Invalid input, please re-try\r\n\0");
 		}
+		//do the game end logic stuff here???
 	}
     return 0;
 }
